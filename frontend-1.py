@@ -5,7 +5,7 @@ import pandas as pd
 @st.cache_data
 def load_data(file):
     df = pd.read_csv(file)
-
+    df = df[df['pdf_link'].notna()]
     return df
 
 # Function to calculate breakdown of each value in a column
