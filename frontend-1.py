@@ -30,6 +30,18 @@ if uploaded_file is not None:
     st.header("Data Preview")
     st.write(data.head())
 
+    # Input for keyword search
+    keyword = st.text_input("Enter a keyword to search for:")
+
+    if keyword:
+        # Filter data based on keyword
+        filtered_data = data[data.apply(lambda row: row.astype(str).str.contains(keyword, case=False).any(), axis=1)]
+        
+        st.header(f"Rows containing the keyword: {keyword}")
+        st.write(filtered_data)
+    else:
+        st.info("Enter a keyword to see the matching rows.")
+
     # Calculate and display breakdown of each value in every column
     st.header("Breakdown of Each Value per Column")
     breakdown = calculate_breakdown(data)
