@@ -33,12 +33,13 @@ if uploaded_file is not None:
     filters = {}
     for column in data.columns:
         unique_values = data[column].unique()
-        selected_values = st.multiselect(f"Filter values for {column}", unique_values, default=unique_values)
+        selected_values = st.multiselect(f"Filter values for {column}", unique_values)
         filters[column] = selected_values
 
     # Apply filters
     for column, selected_values in filters.items():
-        data = data[data[column].isin(selected_values)]
+        if selected_values:
+            data = data[data[column].isin(selected_values)]
 
     # Display filtered data
     st.header(f"Filtered Data (Keyword: {keyword})")
