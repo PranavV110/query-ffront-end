@@ -12,7 +12,7 @@ def load_data(file_path):
 st.sidebar.title("Select Search Parameters")
 
 # Specify the path to your CSV file
-csv_file_path = r"C:\Users\prana\Downloads\updated_papers_op.csv"
+csv_file_path = r"updated_papers_op.csv"
 
 # Load data
 data = load_data(csv_file_path)
