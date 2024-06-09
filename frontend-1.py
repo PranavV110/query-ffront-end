@@ -13,7 +13,7 @@ def load_data(file_path):
 
 # Function to create a hyperlink
 def make_clickable(link):
-    return f'<a href="{link}" target="_blank">Link</a>'
+    return f'<a href="{link}" target="_blank">{link}</a>'
 
 # Streamlit app interface
 st.sidebar.title("Enter Search Parameters")
