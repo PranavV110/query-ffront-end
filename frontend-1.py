@@ -81,11 +81,11 @@ st.title("Filtered Results")
 if 'filtered_data' in st.session_state:
     filtered_data = st.session_state['filtered_data'].copy()
     
-    # Make link column clickable
-    filtered_data['link'] = filtered_data['link'].apply(lambda x: make_clickable(x) if pd.notna(x) else '')
+    # Make links column clickable
+    filtered_data['links'] = filtered_data['links'].apply(lambda x: make_clickable(x) if pd.notna(x) else '')
     
     # Convert the DataFrame to HTML and style it
-    filtered_data_html = filtered_data[["title", "full_name", "publication_date", "publication", "data_source", "type", "link"]].to_html(index=False, escape=False)
+    filtered_data_html = filtered_data[["title", "full_name", "publication_date", "publication", "data_source", "type", "links"]].to_html(index=False, escape=False)
     
     # Apply custom CSS to make the table fit the window symmetrically
     st.markdown("""
