@@ -11,6 +11,10 @@ def load_data(file_path):
     df = df[df['publication_date'].dt.year >= 1990]
     return df
 
+# Function to create a hyperlink
+def make_clickable(link):
+    return f'<a href="{link}" target="_blank">Link</a>'
+
 # Streamlit app interface
 st.sidebar.title("Enter Search Parameters")
 
@@ -75,7 +79,31 @@ if st.sidebar.button("Search"):
 # Display filtered data
 st.title("Filtered Results")
 if 'filtered_data' in st.session_state:
-    filtered_data_html = st.session_state['filtered_data'][["title", "full_name", "publication_date", "publication", "data_source", "type", "link"]].to_html(index=False)
+    filtered_data = st.session_state['filtered_data'].copy()
+    
+    # Make link column clickable
+    filtered_data['link'] = filtered_data['link'].apply(make_clickable)
+    
+    # Convert the DataFrame to HTML and style it
+    filtered_data_html = filtered_data[["title", "full_name", "publication_date", "publication", "data_source", "type", "link"]].to_html(index=False, escape=False)
+    
+    # Apply custom CSS to make the table fit the window symmetrically
+    st.markdown("""
+        <style>
+        .reportview-container .main .block-container{
+            max-width: 1000px;
+            padding-top: 20px;
+            padding-right: 20px;
+            padding-left: 20px;
+            padding-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            table-layout: auto;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+    
     st.markdown(filtered_data_html, unsafe_allow_html=True)
 else:
     st.write("Please set your filters and press 'Search' to see the results.")
