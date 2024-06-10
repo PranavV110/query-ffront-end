@@ -75,6 +75,7 @@ if st.sidebar.button("Search"):
 
     # Store results in session state
     st.session_state['filtered_data'] = filtered_data
+    st.session_state['page'] = 0  # Reset to the first page
 
 # Function to create a hyperlink
 def make_clickable(link):
@@ -95,7 +96,19 @@ if 'filtered_data' in st.session_state:
     # Pagination controls
     page_size = 10
     total_pages = (len(filtered_data) + page_size - 1) // page_size  # Compute total pages
-    page = st.number_input("Page", 0, total_pages - 1, 0, key='page_input_bottom')
+
+    # Add buttons to navigate between pages
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col1:
+        if st.button("Previous"):
+            if st.session_state['page'] > 0:
+                st.session_state['page'] -= 1
+    with col3:
+        if st.button("Next"):
+            if st.session_state['page'] < total_pages - 1:
+                st.session_state['page'] += 1
+
+    page = st.session_state['page']
     
     paginated_data = paginate_data(filtered_data, page, page_size)
     
