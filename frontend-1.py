@@ -40,7 +40,7 @@ with col2:
     end_date = st.date_input("End date", value=current_date, min_value=min_date, max_value=max_date)
 
 # Keyword search input field
-keyword = st.sidebar.text_input("Enter a keyword to search in titles and author names:")
+keyword = st.sidebar.text_input("Enter a keyword to search in the entire DataFrame:")
 
 # Checkboxes for data sources
 st.sidebar.write("Select Source(s):")
@@ -56,10 +56,10 @@ selected_types_checkboxes = [t for t in unique_types if st.sidebar.checkbox(t, k
 if st.sidebar.button("Search"):
     # Perform filtering
     mask = (data['publication_date'] >= pd.Timestamp(start_date)) & (data['publication_date'] <= pd.Timestamp(end_date))
-    
+
     if keyword:
         keyword = keyword.lower()
-        mask &= data['title'].astype(str).apply(lambda x: keyword in x.lower()) | data['full_name'].astype(str).apply(lambda x: keyword in x.lower())
+        mask &= data.apply(lambda row: row.astype(str).str.contains(keyword, case=False).any(), axis=1)
 
     if selected_sources:
         mask &= data['data_source'].isin(selected_sources)
@@ -98,6 +98,36 @@ if 'filtered_data' in st.session_state:
     # Convert the DataFrame to HTML and style it
     filtered_data_html = paginated_data[["title", "full_name", "publication_date", "publication", "data_source", "type", "link"]].to_html(index=False, escape=False)
     
-    st.write(filtered_data_html, unsafe_allow_html=True)
+    # Render the HTML using st.markdown to ensure links are clickable
+    st.markdown(
+        """
+        <style>
+        .reportview-container .main .block-container{
+            padding-top: 20px;
+            padding-right: 20px;
+            padding-left: 20px;
+            padding-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            text-align: left;
+            padding: 8px;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        a {
+            color: #1f77b4;
+            text-decoration: none;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+    
+    st.markdown(filtered_data_html, unsafe_allow_html=True)
 else:
     st.write("Please set your filters and press 'Search' to see the results.")
