@@ -11,6 +11,10 @@ def load_data(file_path):
     df = df[df['publication_date'].dt.year >= 1990]
     return df
 
+# Function to convert DataFrame to CSV
+def convert_df_to_csv(df):
+    return df.to_csv(index=False).encode('utf-8')
+
 # Streamlit app interface
 st.sidebar.title("Enter Search Parameters")
 
@@ -129,5 +133,16 @@ if 'filtered_data' in st.session_state:
     )
     
     st.markdown(filtered_data_html, unsafe_allow_html=True)
+
+    # Convert filtered data to CSV
+    csv = convert_df_to_csv(filtered_data)
+
+    # Download button
+    st.download_button(
+        label="Download data as CSV",
+        data=csv,
+        file_name='filtered_data.csv',
+        mime='text/csv',
+    )
 else:
     st.write("Please set your filters and press 'Search' to see the results.")
