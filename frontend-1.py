@@ -103,35 +103,6 @@ if 'filtered_data' in st.session_state:
     filtered_data_html = paginated_data[["title", "full_name", "publication_date", "publication", "data_source", "type", "link"]].to_html(index=False, escape=False)
     
     # Render the HTML using st.markdown to ensure links are clickable
-    st.markdown(
-        """
-        <style>
-        .reportview-container .main .block-container{
-            padding-top: 20px;
-            padding-right: 20px;
-            padding-left: 20px;
-            padding-bottom: 20px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            text-align: left;
-            padding: 8px;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
-        a {
-            color: #1f77b4;
-            text-decoration: none;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-    
     st.markdown(filtered_data_html, unsafe_allow_html=True)
 
     # Convert filtered data to CSV
