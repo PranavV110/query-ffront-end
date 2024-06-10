@@ -98,20 +98,8 @@ if 'filtered_data' in st.session_state:
     filtered_data['link'] = filtered_data['link'].apply(lambda x: make_clickable(x) if pd.notna(x) else '')
     
     # Pagination controls
-    page_size = 10
+    page_size = 100
     total_pages = (len(filtered_data) + page_size - 1) // page_size  # Compute total pages
-
-    # Add buttons to navigate between pages
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col1:
-        if st.button("Previous"):
-            if st.session_state['page'] > 0:
-                st.session_state['page'] -= 1
-    with col3:
-        if st.button("Next"):
-            if st.session_state['page'] < total_pages - 1:
-                st.session_state['page'] += 1
-
     page = st.session_state['page']
     
     paginated_data = paginate_data(filtered_data, page, page_size)
@@ -122,15 +110,29 @@ if 'filtered_data' in st.session_state:
     # Render the HTML using st.markdown to ensure links are clickable
     st.markdown(filtered_data_html, unsafe_allow_html=True)
 
+    # Display current page and total pages
+    st.write(f"Page {page + 1} of {total_pages}")
+
     # Convert filtered data to CSV
     csv = convert_df_to_csv(filtered_data)
 
-    # Download button
-    st.download_button(
-        label="Download data as CSV",
-        data=csv,
-        file_name='filtered_data.csv',
-        mime='text/csv',
-    )
+    # Download button and pagination controls
+    col1, col2, col3 = st.columns([1, 1, 1])
+    with col1:
+        st.download_button(
+            label="Download data as CSV",
+            data=csv,
+            file_name='filtered_data.csv',
+            mime='text/csv',
+        )
+    with col2:
+        if st.button("Previous"):
+            if st.session_state['page'] > 0:
+                st.session_state['page'] -= 1
+    with col3:
+        if st.button("Next"):
+            if st.session_state['page'] < total_pages - 1:
+                st.session_state['page'] += 1
+
 else:
     st.write("Please set your filters and press 'Search' to see the results.")
