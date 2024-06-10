@@ -95,7 +95,7 @@ if 'filtered_data' in st.session_state:
     # Pagination controls
     page_size = 10
     total_pages = (len(filtered_data) + page_size - 1) // page_size  # Compute total pages
-    page = st.number_input("Page", 0, total_pages - 1, 0, key='page_input')
+    #page = st.number_input("Page", 0, total_pages - 1, 0, key='page_input')
     
     paginated_data = paginate_data(filtered_data, page, page_size)
     
