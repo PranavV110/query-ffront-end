@@ -15,7 +15,7 @@ def load_data(file_path):
 st.sidebar.title("Enter Search Parameters")
 
 # Specify the path to your CSV file
-csv_file_path = r"updated_papers_op.csv"
+csv_file_path = r"C:\Users\prana\Downloads\updated_papers_op.csv"
 
 # Load data
 data = load_data(csv_file_path)
@@ -72,37 +72,32 @@ if st.sidebar.button("Search"):
     # Store results in session state
     st.session_state['filtered_data'] = filtered_data
 
+# Function to create a hyperlink
+def make_clickable(link):
+    return f'<a href="{link}" target="_blank">{link}</a>'
+
+# Pagination
+def paginate_data(data, page, page_size):
+    return data.iloc[page * page_size:(page + 1) * page_size]
+
 # Display filtered data
 st.title("Filtered Results")
 if 'filtered_data' in st.session_state:
-    filtered_data = st.session_state['filtered_data']
+    filtered_data = st.session_state['filtered_data'].copy()
     
-    # Apply custom CSS to make the table fit the window symmetrically
-    st.markdown("""
-        <style>
-        .reportview-container .main .block-container{
-            max-width: 1000px;
-            padding-top: 20px;
-            padding-right: 20px;
-            padding-left: 20px;
-            padding-bottom: 20px;
-        }
-        table {
-            width: 100%;
-            table-layout: auto;
-        }
-        </style>
-        """, unsafe_allow_html=True)
+    # Make link column clickable
+    filtered_data['link'] = filtered_data['link'].apply(lambda x: make_clickable(x) if pd.notna(x) else '')
     
-    # Create the table manually
-    for idx, row in filtered_data.iterrows():
-        st.markdown(f"**Title**: {row['title']}  \n"
-                    f"**Author(s)**: {row['full_name']}  \n"
-                    f"**Publication Date**: {row['publication_date'].date()}  \n"
-                    f"**Publication**: {row['publication']}  \n"
-                    f"**Data Source**: {row['data_source']}  \n"
-                    f"**Type**: {row['type']}  \n"
-                    f"**Link**: [{row['links']}]({row['links']})  \n"
-                    "---")
+    # Pagination controls
+    page_size = 10
+    total_pages = len(filtered_data) // page_size + 1
+    page = st.number_input("Page", 0, total_pages - 1, 0)
+    
+    paginated_data = paginate_data(filtered_data, page, page_size)
+    
+    # Convert the DataFrame to HTML and style it
+    filtered_data_html = paginated_data[["title", "full_name", "publication_date", "publication", "data_source", "type", "link"]].to_html(index=False, escape=False)
+    
+    st.write(filtered_data_html, unsafe_allow_html=True)
 else:
     st.write("Please set your filters and press 'Search' to see the results.")
