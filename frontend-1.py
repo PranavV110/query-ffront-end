@@ -56,6 +56,10 @@ st.sidebar.write("Select Type(s):")
 unique_types = [t.strip() for t in data['type'].dropna().unique().tolist() if t.strip()]
 selected_types_checkboxes = [t for t in unique_types if st.sidebar.checkbox(t, key=f'type_{t}')]
 
+# Initialize session state variables
+if 'page' not in st.session_state:
+    st.session_state['page'] = 0
+
 # Search button
 if st.sidebar.button("Search"):
     # Perform filtering
