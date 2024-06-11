@@ -97,6 +97,9 @@ def make_clickable(link):
 def paginate_data(data, page, page_size):
     return data.iloc[page * page_size:(page + 1) * page_size]
 
+# Display title
+st.title("Filtered Results")
+
 # Display filtered data
 if 'filtered_data' in st.session_state:
     filtered_data = st.session_state['filtered_data'].copy()
@@ -120,7 +123,7 @@ if 'filtered_data' in st.session_state:
     # Display number of results on the current page and total number of filtered results
     current_page_results = len(paginated_data)
     total_results = len(filtered_data)
-    st.title(f"Filtered Results - Showing {current_page_results} of {total_results} results")
+    st.subheader(f"Showing {current_page_results} of {total_results} results")
 
     # Convert filtered data to CSV
     csv = convert_df_to_csv(filtered_data)
@@ -145,5 +148,4 @@ if 'filtered_data' in st.session_state:
                 st.session_state['page'] += 1
 
 else:
-    st.title("Filtered Results")
     st.write("Please set your filters and press 'Search' to see the results.")
