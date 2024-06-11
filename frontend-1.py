@@ -145,7 +145,7 @@ if 'filtered_data' in st.session_state:
                 st.session_state['page'] -= 1
     with col2:
         if st.button("Next"):
-            if st.session_state['page'] < total_pages - 1):
+            if st.session_state['page'] < total_pages - 1:
                 st.session_state['page'] += 1
 
 else:
