@@ -121,6 +121,11 @@ if 'filtered_data' in st.session_state:
     # Display current page and total pages
     st.write(f"Page {page + 1} of {total_pages}")
 
+    # Sidebar text to show number of results on the current page and total results
+    current_page_results = len(paginated_data)
+    total_results = len(filtered_data)
+    st.sidebar.write(f"Showing {current_page_results} of {total_results} results")
+
     # Convert filtered data to CSV
     csv = convert_df_to_csv(filtered_data)
 
