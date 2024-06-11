@@ -124,14 +124,15 @@ if 'filtered_data' in st.session_state:
     # Convert filtered data to CSV
     csv = convert_df_to_csv(filtered_data)
 
-    # Download button and pagination controls
-    st.download_button(
+    # Download button on the sidebar
+    st.sidebar.download_button(
         label="Download data as CSV",
         data=csv,
         file_name='filtered_data.csv',
         mime='text/csv',
     )
 
+    # Pagination controls
     col1, col2 = st.columns([1, 1])
     with col1:
         if st.button("Previous"):
