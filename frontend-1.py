@@ -35,13 +35,21 @@ if current_date < min_date:
 if current_date > max_date:
     current_date = max_date
 
+# Set default end date to current date and start date to one year before
+default_end_date = current_date
+default_start_date = current_date - datetime.timedelta(days=365)
+
+# Ensure the default start date is within the valid range
+if default_start_date < min_date:
+    default_start_date = min_date
+
 # Date range selection with default current date
 st.sidebar.write("Select date range:")
 col1, col2 = st.sidebar.columns(2)
 with col1:
-    start_date = st.date_input("Start date", value=current_date, min_value=min_date, max_value=max_date)
+    start_date = st.date_input("Start date", value=default_start_date, min_value=min_date, max_value=max_date)
 with col2:
-    end_date = st.date_input("End date", value=current_date, min_value=min_date, max_value=max_date)
+    end_date = st.date_input("End date", value=default_end_date, min_value=min_date, max_value=max_date)
 
 # Keyword search input field
 keyword = st.sidebar.text_input("Enter a keyword to search in the entire DataFrame:")
