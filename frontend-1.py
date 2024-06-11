@@ -98,7 +98,6 @@ def paginate_data(data, page, page_size):
     return data.iloc[page * page_size:(page + 1) * page_size]
 
 # Display filtered data
-st.title("Filtered Results")
 if 'filtered_data' in st.session_state:
     filtered_data = st.session_state['filtered_data'].copy()
     
@@ -118,13 +117,10 @@ if 'filtered_data' in st.session_state:
     # Render the HTML using st.markdown to ensure links are clickable
     st.markdown(filtered_data_html, unsafe_allow_html=True)
 
-    # Display current page and total pages
-    st.write(f"Page {page + 1} of {total_pages}")
-
     # Display number of results on the current page and total number of filtered results
     current_page_results = len(paginated_data)
     total_results = len(filtered_data)
-    st.write(f"Showing {current_page_results} of {total_results} results")
+    st.title(f"Filtered Results - Showing {current_page_results} of {total_results} results")
 
     # Convert filtered data to CSV
     csv = convert_df_to_csv(filtered_data)
@@ -149,4 +145,5 @@ if 'filtered_data' in st.session_state:
                 st.session_state['page'] += 1
 
 else:
+    st.title("Filtered Results")
     st.write("Please set your filters and press 'Search' to see the results.")
