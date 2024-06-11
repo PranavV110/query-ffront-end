@@ -125,19 +125,19 @@ if 'filtered_data' in st.session_state:
     csv = convert_df_to_csv(filtered_data)
 
     # Download button and pagination controls
-    col1, col2, col3 = st.columns([1, 1, 1])
+    st.download_button(
+        label="Download data as CSV",
+        data=csv,
+        file_name='filtered_data.csv',
+        mime='text/csv',
+    )
+
+    col1, col2 = st.columns([1, 1])
     with col1:
-        st.download_button(
-            label="Download data as CSV",
-            data=csv,
-            file_name='filtered_data.csv',
-            mime='text/csv',
-        )
-    with col2:
         if st.button("Previous"):
             if st.session_state['page'] > 0:
                 st.session_state['page'] -= 1
-    with col3:
+    with col2:
         if st.button("Next"):
             if st.session_state['page'] < total_pages - 1:
                 st.session_state['page'] += 1
