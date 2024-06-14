@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import datetime
+from fuzzywuzzy import fuzz, process
 
 # Function to load CSV data
 @st.cache_data
@@ -14,6 +15,19 @@ def load_data(file_path):
 # Function to convert DataFrame to CSV
 def convert_df_to_csv(df):
     return df.to_csv(index=False).encode('utf-8')
+
+# Function to create a hyperlink
+def make_clickable(link):
+    return f'<a href="{link}" target="_blank">{link}</a>'
+
+# Fuzzy matching function
+def fuzzy_match(query, choices, score_cutoff=80):
+    results = process.extract(query, choices, scorer=fuzz.token_set_ratio)
+    return [match for match, score in results if score >= score_cutoff]
+
+# Pagination function
+def paginate_data(data, page, page_size):
+    return data.iloc[page * page_size:(page + 1) * page_size]
 
 # Streamlit app interface
 st.sidebar.title("Enter Search Parameters")
@@ -71,39 +85,34 @@ if 'page' not in st.session_state:
 
 # Search button
 if st.sidebar.button("Search"):
-    # Perform filtering
-    mask = (data['publication_date'] >= pd.Timestamp(start_date)) & (data['publication_date'] <= pd.Timestamp(end_date))
+    with st.spinner('Filtering data...'):
+        # Perform filtering
+        mask = (data['publication_date'] >= pd.Timestamp(start_date)) & (data['publication_date'] <= pd.Timestamp(end_date))
 
-    if title_keyword:
-        title_keyword = title_keyword.lower()
-        mask &= data['title'].astype(str).apply(lambda x: title_keyword in x.lower())
+        if title_keyword:
+            title_keyword = title_keyword.lower()
+            matched_titles = fuzzy_match(title_keyword, data['title'].astype(str).tolist())
+            mask &= data['title'].isin(matched_titles)
 
-    if author_keyword:
-        author_keyword = author_keyword.lower()
-        mask &= data['full_name'].astype(str).apply(lambda x: author_keyword in x.lower())
+        if author_keyword:
+            author_keyword = author_keyword.lower()
+            matched_authors = fuzzy_match(author_keyword, data['full_name'].astype(str).tolist())
+            mask &= data['full_name'].isin(matched_authors)
 
-    if selected_sources:
-        mask &= data['data_source'].isin(selected_sources)
+        if selected_sources:
+            mask &= data['data_source'].isin(selected_sources)
 
-    if selected_types_checkboxes:
-        mask &= data['type'].isin(selected_types_checkboxes)
+        if selected_types_checkboxes:
+            mask &= data['type'].isin(selected_types_checkboxes)
 
-    filtered_data = data[mask]
+        filtered_data = data[mask]
 
-    # Store results in session state
-    st.session_state['filtered_data'] = filtered_data
-    st.session_state['page'] = 0  # Reset to the first page
-
-# Function to create a hyperlink
-def make_clickable(link):
-    return f'<a href="{link}" target="_blank">{link}</a>'
-
-# Pagination
-def paginate_data(data, page, page_size):
-    return data.iloc[page * page_size:(page + 1) * page_size]
+        # Store results in session state
+        st.session_state['filtered_data'] = filtered_data
+        st.session_state['page'] = 0  # Reset to the first page
 
 # Display title
-st.title("Filtered Results")
+st.markdown("<h1 style='text-align: center;'>Filtered Results</h1>", unsafe_allow_html=True)
 
 # Display filtered data
 if 'filtered_data' in st.session_state:
@@ -114,16 +123,16 @@ if 'filtered_data' in st.session_state:
 
     # Clean up special characters in the DataFrame
     filtered_data.replace({r'\n': ' ', r'\r': ' '}, regex=True, inplace=True)
-    
+
     # Pagination controls
     page_size = 100
     total_pages = (len(filtered_data) + page_size - 1) // page_size  # Compute total pages
     page = st.session_state['page']
-    
+
     paginated_data = paginate_data(filtered_data, page, page_size)
-    
+
     # Convert the DataFrame to HTML and style it
-    filtered_data_html = paginated_data[["title", "full_name", "publication_date", "data_source", "type", "link"]].dropna().to_html(index=False, escape=False)
+    filtered_data_html = paginated_data[["full_name", "title", "publication_date", "data_source", "type", "link"]].to_html(index=False, escape=False)
 
     # Apply CSS to prioritize width for 'title' and 'full_name' columns and limit row height
     st.markdown("""
@@ -132,18 +141,26 @@ if 'filtered_data' in st.session_state:
             width: 100%;
             table-layout: auto;
             overflow-x: auto;
+            margin-left: -165px; /* Shift table slightly to the left */
         }
         .dataframe th, .dataframe td {
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            max-width: 300px;
             max-height: 2.4em;
             line-height: 1.2em;
             padding: 0.6em;
         }
+        .dataframe td:nth-child(1), .dataframe td:nth-child(2) {
+            max-width: 250px;
+        }
+        .dataframe td:nth-child(5) {
+            max-width: 150px;
+        }
         </style>
         """, unsafe_allow_html=True)
-    
+
     # Render the HTML using st.markdown to ensure links are clickable
     st.markdown(filtered_data_html, unsafe_allow_html=True)
 
