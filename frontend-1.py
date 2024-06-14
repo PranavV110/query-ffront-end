@@ -38,6 +38,8 @@ csv_file_path = "updated_papers_op.csv"
 # Load data
 data = load_data(csv_file_path)
 
+data = data[data['data_source'] != 'dblp']
+
 # Get min and max dates from the dataframe
 min_date = data['publication_date'].min().date()
 max_date = data['publication_date'].max().date()
