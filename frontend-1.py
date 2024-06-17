@@ -90,24 +90,30 @@ if st.sidebar.button("Search"):
     with st.spinner('Filtering data...'):
         # Perform filtering
         mask = (data['publication_date'] >= pd.Timestamp(start_date)) & (data['publication_date'] <= pd.Timestamp(end_date))
-
+        st.write(f"Date range filter: {mask.sum()} rows matched")
+        
         if title_keyword:
             title_keyword = title_keyword.lower()
             matched_titles = fuzzy_match(title_keyword, data['title'].astype(str).tolist())
             mask &= data['title'].isin(matched_titles)
+            st.write(f"Title keyword filter: {len(matched_titles)} matches found, {mask.sum()} rows matched")
 
         if author_keyword:
             author_keyword = author_keyword.lower()
             matched_authors = fuzzy_match(author_keyword, data['full_name'].astype(str).tolist())
             mask &= data['full_name'].isin(matched_authors)
+            st.write(f"Author keyword filter: {len(matched_authors)} matches found, {mask.sum()} rows matched")
 
         if selected_sources:
             mask &= data['data_source'].isin(selected_sources)
+            st.write(f"Source filter: {len(selected_sources)} selected, {mask.sum()} rows matched")
 
         if selected_types_checkboxes:
             mask &= data['type'].isin(selected_types_checkboxes)
+            st.write(f"Type filter: {len(selected_types_checkboxes)} selected, {mask.sum()} rows matched")
 
         filtered_data = data[mask]
+        st.write(f"Total filtered rows: {len(filtered_data)}")
 
         # Store results in session state
         st.session_state['filtered_data'] = filtered_data
