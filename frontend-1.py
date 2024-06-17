@@ -21,7 +21,7 @@ def make_clickable(link):
     return f'<a href="{link}" target="_blank">{link}</a>'
 
 # Fuzzy matching function
-def fuzzy_match(query, choices, score_cutoff=80):
+def fuzzy_match(query, choices, score_cutoff=70):
     results = process.extract(query, choices, scorer=fuzz.token_set_ratio)
     return [match for match, score in results if score >= score_cutoff]
 
