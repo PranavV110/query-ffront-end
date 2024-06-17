@@ -8,7 +8,7 @@ from fuzzywuzzy import fuzz, process
 def load_data(file_path):
     df = pd.read_csv(file_path)
     df['publication_date'] = pd.to_datetime(df['publication_date'], errors='coerce')
-    df = df.dropna(subset=['publication_date'])
+    #df = df.dropna(subset=['publication_date'])
     df = df[df['publication_date'].dt.year >= 1990]
     return df
 
