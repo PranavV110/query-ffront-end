@@ -8,7 +8,6 @@ from fuzzywuzzy import fuzz, process
 def load_data(file_path):
     df = pd.read_csv(file_path)
     df['publication_date'] = pd.to_datetime(df['publication_date'], errors='coerce')
-    #df = df.dropna(subset=['publication_date'])
     df = df[df['publication_date'].dt.year >= 1990]
     return df
 
@@ -94,9 +93,8 @@ if st.sidebar.button("Search"):
         
         if title_keyword:
             title_keyword = title_keyword.lower()
-            matched_titles = fuzzy_match(title_keyword, data['title'].astype(str).tolist())
-            mask &= data['title'].isin(matched_titles)
-            st.write(f"Title keyword filter: {len(matched_titles)} matches found, {mask.sum()} rows matched")
+            mask &= data['title'].str.contains(title_keyword, case=False, na=False)
+            st.write(f"Title keyword filter: {mask.sum()} rows matched")
 
         if author_keyword:
             author_keyword = author_keyword.lower()
