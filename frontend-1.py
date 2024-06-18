@@ -9,7 +9,7 @@ def load_data(file_path):
     df = pd.read_csv(file_path)
     df['publication_date'] = pd.to_datetime(df['publication_date'], errors='coerce')
     df = df[df['publication_date'].dt.year >= 1990]
-    df.fillna('-', inplace=True)
+    df['type']=df['type'].fillna('-', inplace=True)
     return df
 
 # Function to convert DataFrame to CSV
