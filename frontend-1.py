@@ -111,7 +111,7 @@ if st.sidebar.button("Search"):
             #st.write(f"Type filter: {len(selected_types_checkboxes)} selected, {mask.sum()} rows matched")
 
         filtered_data = data[mask]
-        st.write(f"Total filtered rows: {len(filtered_data)}")
+        #st.write(f"Total filtered rows: {len(filtered_data)}")
 
         # Store results in session state
         st.session_state['filtered_data'] = filtered_data
