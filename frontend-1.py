@@ -39,7 +39,7 @@ csv_file_path = "test_df.csv"
 # Load data
 data = load_data(csv_file_path)
 
-data = data[data['data_source'] != 'dblp']
+#data = data[data['data_source'] != 'dblp']
 
 # Get min and max dates from the dataframe
 min_date = data['publication_date'].min().date()
