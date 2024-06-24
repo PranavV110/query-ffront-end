@@ -9,7 +9,6 @@ def load_data(file_path):
     df = pd.read_csv(file_path)
     df['publication_date'] = pd.to_datetime(df['publication_date'], errors='coerce')
     df = df[df['publication_date'].dt.year >= 1990]
-    #df['type']=df['type'].replace('NaN', '-')
     df.fillna('-', inplace=True)
     return df
 
@@ -38,8 +37,6 @@ csv_file_path = "test_df.csv"
 
 # Load data
 data = load_data(csv_file_path)
-
-#data = data[data['data_source'] != 'dblp']
 
 # Get min and max dates from the dataframe
 min_date = data['publication_date'].min().date()
@@ -91,29 +88,23 @@ if st.sidebar.button("Search"):
     with st.spinner('Filtering data...'):
         # Perform filtering
         mask = (data['publication_date'] >= pd.Timestamp(start_date)) & (data['publication_date'] <= pd.Timestamp(end_date))
-        #st.write(f"Date range filter: {mask.sum()} rows matched")
         
         if title_keyword:
             title_keyword = title_keyword.lower()
             mask &= data['title'].str.contains(title_keyword, case=False, na=False)
-            #st.write(f"Title keyword filter: {mask.sum()} rows matched")
 
         if author_keyword:
             author_keyword = author_keyword.lower()
             matched_authors = fuzzy_match(author_keyword, data['full_name'].astype(str).tolist())
             mask &= data['full_name'].isin(matched_authors)
-            #st.write(f"Author keyword filter: {len(matched_authors)} matches found, {mask.sum()} rows matched")
 
         if selected_sources:
             mask &= data['data_source'].isin(selected_sources)
-            st.write(f"Source filter: {len(selected_sources)} selected, {mask.sum()} rows matched")
 
         if selected_types_checkboxes:
             mask &= data['type'].isin(selected_types_checkboxes)
-            #st.write(f"Type filter: {len(selected_types_checkboxes)} selected, {mask.sum()} rows matched")
 
         filtered_data = data[mask]
-        #st.write(f"Total filtered rows: {len(filtered_data)}")
 
         # Store results in session state
         st.session_state['filtered_data'] = filtered_data
@@ -175,7 +166,9 @@ if 'filtered_data' in st.session_state:
     # Display number of results on the current page and total number of filtered results
     current_page_results = len(paginated_data)
     total_results = len(filtered_data)
-    st.subheader(f"Showing {current_page_results} of {total_results} results")
+    start_idx = page * page_size + 1
+    end_idx = start_idx + current_page_results - 1
+    st.subheader(f"Showing {start_idx}-{end_idx} of {total_results} results")
 
     # Convert filtered data to CSV
     csv = convert_df_to_csv(filtered_data)
