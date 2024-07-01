@@ -71,7 +71,7 @@ author_keyword = st.sidebar.text_input("Enter a keyword to search in author name
 
 # Checkboxes for data sources
 st.sidebar.write("Select Source(s):")
-data_sources = [source.strip() for source in data['data_source'].dropna().unique().tolist() if source.strip()]
+data_sources = [source.strip() for source in data['data_source'].unique().tolist() if source.strip()]
 selected_sources = [source for source in data_sources if st.sidebar.checkbox(source, key=f'source_{source}')]
 
 # Checkboxes for types
