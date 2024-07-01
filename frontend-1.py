@@ -7,7 +7,7 @@ from fuzzywuzzy import fuzz, process
 @st.cache_data
 def load_data(file_path):
     df = pd.read_csv(file_path)
-    df['publication_date'] = pd.to_datetime(df['publication_date'])
+    df['publication_date'] = pd.to_datetime(df['publication_date'],format='mixed')
     df.fillna('-', inplace=True)
     return df
 
