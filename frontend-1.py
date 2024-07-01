@@ -8,7 +8,6 @@ from fuzzywuzzy import fuzz, process
 def load_data(file_path):
     df = pd.read_csv(file_path)
     df['publication_date'] = pd.to_datetime(df['publication_date'], errors='coerce')
-    #df = df[df['publication_date'].dt.year >= 1990]
     df.fillna('-', inplace=True)
     return df
 
@@ -86,6 +85,9 @@ if 'page' not in st.session_state:
 # Search button
 if st.sidebar.button("Search"):
     with st.spinner('Filtering data...'):
+        # Ensure publication_date is in datetime format
+        data['publication_date'] = pd.to_datetime(data['publication_date'], errors='coerce')
+        
         # Perform filtering
         mask = (data['publication_date'] >= pd.Timestamp(start_date)) & (data['publication_date'] <= pd.Timestamp(end_date))
         
