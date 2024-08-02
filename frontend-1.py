@@ -8,7 +8,7 @@ from fuzzywuzzy import fuzz, process
 def load_data(file_path):
     df = pd.read_csv(file_path)
     df['publication_date'] = pd.to_datetime(df['publication_date'],format='mixed')
-    df.fillna('-', inplace=True)
+    df.fillna('other', inplace=True)
     return df
 
 # Function to convert DataFrame to CSV
