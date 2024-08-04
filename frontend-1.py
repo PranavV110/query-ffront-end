@@ -189,12 +189,12 @@ if 'filtered_data' in st.session_state:
         if st.button("Previous"):
             if st.session_state['page'] > 0:
                 st.session_state['page'] -= 1
-                st.experimental_rerun()
+                st.rerun()
     with col2:
         if st.button("Next"):
             if st.session_state['page'] < total_pages - 1:
                 st.session_state['page'] += 1
-                st.experimental_rerun()
+                st.rerun()
 
 else:
     st.write("Please set your filters and press 'Search' to see the results.")
