@@ -37,11 +37,13 @@ csv_file_path = "dblpval.csv"
 # Load data
 data = load_data(csv_file_path)
 
+data['title'] = data['title'].astype(str)
+
 # Get min and max dates from the dataframe
 min_date = data['publication_date'].min().date()
 max_date = data['publication_date'].max().date()
 
-data['title'] = data['title'].astype(str)
+
 
 # Set current date within the valid range
 current_date = datetime.date.today()
