@@ -41,6 +41,8 @@ data = load_data(csv_file_path)
 min_date = data['publication_date'].min().date()
 max_date = data['publication_date'].max().date()
 
+data['title'] = data['title'].astype(str)
+
 # Set current date within the valid range
 current_date = datetime.date.today()
 if current_date < min_date:
