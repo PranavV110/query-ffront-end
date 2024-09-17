@@ -129,7 +129,7 @@ if 'filtered_data' in st.session_state:
     # Clean up special characters in the DataFrame
     filtered_data.replace({r'\n': ' ', r'\r': ' '}, regex=True, inplace=True)
 
-    filtered_data['title'] = filtered_data['title'].astype(str)
+    filtered_data = filtered_data.astype(str)
 
     # Pagination controls
     page_size = 100
