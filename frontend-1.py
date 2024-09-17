@@ -175,13 +175,13 @@ if 'filtered_data' in st.session_state:
 
     # Display number of results on the current page and total number of filtered results
     current_page_results = len(paginated_data)
-    total_results = len(filtered_data)
+    total_results = len(filtered_data2)
     start_idx = page * page_size + 1
     end_idx = start_idx + current_page_results - 1
     st.subheader(f"Showing {start_idx}-{end_idx} of {total_results} results")
 
     # Convert filtered data to CSV
-    csv = convert_df_to_csv(filtered_data)
+    csv = convert_df_to_csv(filtered_data2)
 
     # Download button on the sidebar
     st.sidebar.download_button(
