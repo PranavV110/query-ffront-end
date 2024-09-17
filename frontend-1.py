@@ -129,14 +129,14 @@ if 'filtered_data' in st.session_state:
     # Clean up special characters in the DataFrame
     filtered_data.replace({r'\n': ' ', r'\r': ' '}, regex=True, inplace=True)
 
-    filtered_data = filtered_data.astype(str)
+    filtered_data2 = filtered_data.astype(str)
 
     # Pagination controls
     page_size = 100
-    total_pages = (len(filtered_data) + page_size - 1) // page_size  # Compute total pages
+    total_pages = (len(filtered_data2) + page_size - 1) // page_size  # Compute total pages
     page = st.session_state['page']
 
-    paginated_data = paginate_data(filtered_data, page, page_size)
+    paginated_data = paginate_data(filtered_data2, page, page_size)
     #paginated_data['title'] = paginated_data['title'].astype(str)
 
     # Convert the DataFrame to HTML and style it
