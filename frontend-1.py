@@ -137,11 +137,11 @@ if 'filtered_data' in st.session_state:
     page = st.session_state['page']
 
     paginated_data = paginate_data(filtered_data, page, page_size)
-    paginated_data['title'] = paginated_data['title'].astype(str)
+    #paginated_data['title'] = paginated_data['title'].astype(str)
 
     # Convert the DataFrame to HTML and style it
     filtered_data_html = paginated_data[["full_name", "title", "publication_date", "data_source", "type", "link"]].to_html(index=False, escape=False)
-    filtered_data_html['title'] = filtered_data_html['title'].astype(str)
+    #filtered_data_html['title'] = filtered_data_html['title'].astype(str)
 
     # Apply CSS to prioritize width for 'title' and 'full_name' columns and limit row height
     st.markdown("""
