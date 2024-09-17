@@ -129,6 +129,8 @@ if 'filtered_data' in st.session_state:
     # Clean up special characters in the DataFrame
     filtered_data.replace({r'\n': ' ', r'\r': ' '}, regex=True, inplace=True)
 
+    filtered_data = filtered_data.astype(str)
+
     # Pagination controls
     page_size = 100
     total_pages = (len(filtered_data) + page_size - 1) // page_size  # Compute total pages
