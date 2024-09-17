@@ -17,6 +17,9 @@ def convert_df_to_csv(df):
 
 # Function to create a hyperlink
 def make_clickable(link):
+    if 'dblp.org' in link:
+        # Do not attempt to connect to dblp.org; just format the string as a hyperlink
+        return f'<a href="{link}" target="_blank">{link}</a>'
     return f'<a href="{link}" target="_blank">{link}</a>'
 
 # Fuzzy matching function
