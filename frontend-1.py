@@ -39,7 +39,7 @@ csv_file_path = "dblpval.csv"
 
 # Load data
 data = load_data(csv_file_path)
-
+data = data[data['data_source']  != 'dblp']
 data['title'] = data['title'].astype(str)
 
 # Get min and max dates from the dataframe
