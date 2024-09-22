@@ -8,6 +8,7 @@ from fuzzywuzzy import fuzz, process
 def load_data(file_path):
     df = pd.read_csv(file_path)
     df['publication_date'] = pd.to_datetime(df['publication_date'],format='mixed')
+    df = df.astype(object)
     df.fillna('N/A', inplace=True)
     return df
 
