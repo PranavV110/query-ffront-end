@@ -15,12 +15,11 @@ def load_data(file_path):
 def convert_df_to_csv(df):
     return df.to_csv(index=False).encode('utf-8')
 
-# Function to create a hyperlink
-def make_clickable(link):
-    if 'dblp.org' in link:
-        # Do not attempt to connect to dblp.org; just format the string as a hyperlink
-        return f'<a href="{link}" target="_blank">{link}</a>'
-    return f'<a href="{link}" target="_blank">{link}</a>'
+# Function to create a hyperlink for the title
+def make_clickable(title, link):
+    if pd.notna(link):
+        return f'<a href="{link}" target="_blank">{title}</a>'
+    return title  # Return just the title if link is not available
 
 # Fuzzy matching function
 def fuzzy_match(query, choices, score_cutoff=70):
@@ -39,14 +38,12 @@ csv_file_path = "TEST_papers.csv"
 
 # Load data
 data = load_data(csv_file_path)
-data = data[data['data_source']  != 'dblp']
+data = data[data['data_source'] != 'dblp']
 data['title'] = data['title'].astype(str)
 
 # Get min and max dates from the dataframe
 min_date = data['publication_date'].min().date()
 max_date = data['publication_date'].max().date()
-
-
 
 # Set current date within the valid range
 current_date = datetime.date.today()
@@ -126,8 +123,8 @@ st.markdown("<h1 style='text-align: center;'>Filtered Results</h1>", unsafe_allo
 if 'filtered_data' in st.session_state:
     filtered_data = st.session_state['filtered_data'].copy()
 
-    # Make link column clickable
-    filtered_data['link'] = filtered_data['link'].apply(lambda x: make_clickable(x) if pd.notna(x) else '')
+    # Make title column clickable using the link
+    filtered_data['title'] = filtered_data.apply(lambda x: make_clickable(x['title'], x['link']), axis=1)
 
     # Clean up special characters in the DataFrame
     filtered_data.replace({r'\n': ' ', r'\r': ' '}, regex=True, inplace=True)
@@ -140,11 +137,12 @@ if 'filtered_data' in st.session_state:
     page = st.session_state['page']
 
     paginated_data = paginate_data(filtered_data, page, page_size)
-    #paginated_data['title'] = paginated_data['title'].astype(str)
+
+    # Remove the 'link' column
+    paginated_data = paginated_data.drop(columns=['link'])
 
     # Convert the DataFrame to HTML and style it
-    filtered_data_html = paginated_data[["full_name", "title", "publication_date", "data_source", "type", "link"]].to_html(index=False, escape=False)
-    #filtered_data_html['title'] = filtered_data_html['title'].astype(str)
+    filtered_data_html = paginated_data[["full_name", "title", "publication_date", "data_source"]].to_html(index=False, escape=False)
 
     # Apply CSS to prioritize width for 'title' and 'full_name' columns and limit row height
     st.markdown("""
@@ -152,23 +150,23 @@ if 'filtered_data' in st.session_state:
         .dataframe {
             width: 100%;
             table-layout: auto;
-            overflow-x: auto;
-            margin-left: -165px; /* Shift table slightly to the left */
+            overflow-x: wrap;
+            margin-left: 0px; /* Shift table slightly to the left */
         }
         .dataframe th, .dataframe td {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 300px;
-            max-height: 2.4em;
-            line-height: 1.2em;
-            padding: 0.6em;
+            white-space: normal;
+            overflow: scroll;
+            text-overflow: clip;
+            max-width: 100px;
+            max-height: 2em;
+            line-height: 2em;
+            padding: 0.01em;
         }
         .dataframe td:nth-child(1), .dataframe td:nth-child(2) {
-            max-width: 250px;
+            max-width: 700px;
         }
         .dataframe td:nth-child(5) {
-            max-width: 150px;
+            max-width: 100px;
         }
         </style>
         """, unsafe_allow_html=True)
