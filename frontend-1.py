@@ -56,7 +56,7 @@ if current_date > max_date:
 
 # Set default end date to current date and start date to one year before
 default_end_date = current_date
-default_start_date = current_date - datetime.timedelta(days=365)
+default_start_date = current_date - datetime.timedelta(days=1825)
 
 # Ensure the default start date is within the valid range
 if default_start_date < min_date:
