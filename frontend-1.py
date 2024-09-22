@@ -3,6 +3,7 @@ import pandas as pd
 import datetime
 from fuzzywuzzy import fuzz, process
 
+pd.set_option('future.no_silent_downcasting', True)
 # Function to load CSV data
 @st.cache_data
 def load_data(file_path):
