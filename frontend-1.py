@@ -2,14 +2,15 @@ import streamlit as st
 import pandas as pd
 import datetime
 from fuzzywuzzy import fuzz, process
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
 
-pd.set_option('future.no_silent_downcasting', True)
 # Function to load CSV data
 @st.cache_data
 def load_data(file_path):
     df = pd.read_csv(file_path)
-    df['publication_date'] = pd.to_datetime(df['publication_date'],format='mixed')
-    df = df.astype(object)
+    df['publication_date'] = pd.to_datetime(df['publication_date'], format='mixed')
     df.fillna('N/A', inplace=True)
     return df
 
@@ -24,9 +25,38 @@ def make_clickable(title, link):
     return title  # Return just the title if link is not available
 
 # Fuzzy matching function
+# Fuzzy matching function
 def fuzzy_match(query, choices, score_cutoff=70):
+    # Extract results with their scores and indices
     results = process.extract(query, choices, scorer=fuzz.token_set_ratio)
-    return [match for match, score in results if score >= score_cutoff]
+    # Unpack the results and use the first two elements (match and score)
+    return [match for match, score, _ in results if score >= score_cutoff]
+
+
+# Function to find similar titles using cosine similarity
+def find_similar_titles(query, titles):
+    # Transform the titles into a vectorized form
+    from sklearn.feature_extraction.text import TfidfVectorizer
+    from sklearn.metrics.pairwise import cosine_similarity
+    
+    # Create TF-IDF vectors for the titles
+    vectorizer = TfidfVectorizer(stop_words='english')
+    title_vectors = vectorizer.fit_transform(titles)
+    
+    # Vectorize the query as well
+    query_vector = vectorizer.transform([query])
+    
+    # Compute cosine similarities
+    cosine_similarities = cosine_similarity(query_vector, title_vectors).flatten()
+    
+    # Get indices of titles with highest similarity scores
+    similar_indices = cosine_similarities.argsort()[::-1]  # Sort in descending order of similarity
+    
+    # Get similar titles, use iloc for position-based indexing
+    similar_titles = [titles.iloc[i] for i in similar_indices if cosine_similarities[i] > 0.2]  # Set a threshold for similarity
+    
+    return similar_titles
+
 
 # Pagination function
 def paginate_data(data, page, page_size):
@@ -36,7 +66,7 @@ def paginate_data(data, page, page_size):
 st.sidebar.title("Enter Search Parameters")
 
 # Specify the path to your CSV file
-csv_file_path = "TEST_papers.csv"
+csv_file_path = "dblpval.csv"
 
 # Load data
 data = load_data(csv_file_path)
@@ -56,7 +86,7 @@ if current_date > max_date:
 
 # Set default end date to current date and start date to one year before
 default_end_date = current_date
-default_start_date = current_date - datetime.timedelta(days=1825)
+default_start_date = current_date - datetime.timedelta(days=365)
 
 # Ensure the default start date is within the valid range
 if default_start_date < min_date:
@@ -97,9 +127,15 @@ if st.sidebar.button("Search"):
         # Perform filtering
         mask = (data['publication_date'] >= pd.Timestamp(start_date)) & (data['publication_date'] <= pd.Timestamp(end_date))
         
+        # Apply smart search using fuzzy matching and similarity
         if title_keyword:
-            title_keyword = title_keyword.lower()
-            mask &= data['title'].str.contains(title_keyword, case=False, na=False)
+            # Find similar titles using fuzzy matching and TF-IDF
+            fuzzy_matches = fuzzy_match(title_keyword, data['title'])
+            similar_titles = find_similar_titles(title_keyword, data['title'])
+            combined_matches = set(fuzzy_matches + similar_titles)
+            
+            # Filter data based on combined matches
+            mask &= data['title'].isin(combined_matches)
 
         if author_keyword:
             author_keyword = author_keyword.lower()
