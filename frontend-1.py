@@ -25,12 +25,12 @@ def make_clickable(title, link):
     return title  # Return just the title if link is not available
 
 # Fuzzy matching function
-# Fuzzy matching function
+#Fuzzy matching function
 def fuzzy_match(query, choices, score_cutoff=70):
-    # Extract results with their scores and indices
+    # Extract results with their scores
     results = process.extract(query, choices, scorer=fuzz.token_set_ratio)
     # Unpack the results and use the first two elements (match and score)
-    return [match for match, score, _ in results if score >= score_cutoff]
+    return [match for match, score in results if score >= score_cutoff]
 
 
 # Function to find similar titles using cosine similarity
