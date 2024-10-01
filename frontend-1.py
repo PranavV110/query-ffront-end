@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import datetime
-from fuzzywuzzy import fuzz, process
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
@@ -24,39 +23,25 @@ def make_clickable(title, link):
         return f'<a href="{link}" target="_blank">{title}</a>'
     return title  # Return just the title if link is not available
 
-# Fuzzy matching function
-#Fuzzy matching function
-def fuzzy_match(query, choices, score_cutoff=70):
-    # Extract results with their scores
-    results = process.extract(query, choices, scorer=fuzz.token_set_ratio)
-    # Unpack the results and use the first two elements (match and score)
-    return [match for match, score in results if score >= score_cutoff]
-
-
-# Function to find similar titles using cosine similarity
-def find_similar_titles(query, titles):
-    # Transform the titles into a vectorized form
-    from sklearn.feature_extraction.text import TfidfVectorizer
-    from sklearn.metrics.pairwise import cosine_similarity
-    
-    # Create TF-IDF vectors for the titles
+# Function to find similar entries using cosine similarity for any column (titles/authors)
+def find_similar_entries(query, column_data):
+    # Create TF-IDF vectors for the column data (either titles or author names)
     vectorizer = TfidfVectorizer(stop_words='english')
-    title_vectors = vectorizer.fit_transform(titles)
+    column_vectors = vectorizer.fit_transform(column_data)
     
-    # Vectorize the query as well
+    # Vectorize the query
     query_vector = vectorizer.transform([query])
     
     # Compute cosine similarities
-    cosine_similarities = cosine_similarity(query_vector, title_vectors).flatten()
+    cosine_similarities = cosine_similarity(query_vector, column_vectors).flatten()
     
-    # Get indices of titles with highest similarity scores
+    # Get indices of entries with highest similarity scores
     similar_indices = cosine_similarities.argsort()[::-1]  # Sort in descending order of similarity
     
-    # Get similar titles, use iloc for position-based indexing
-    similar_titles = [titles.iloc[i] for i in similar_indices if cosine_similarities[i] > 0.2]  # Set a threshold for similarity
+    # Get similar entries (use a threshold to filter out low similarity)
+    similar_entries = [column_data.iloc[i] for i in similar_indices if cosine_similarities[i] > 0.1]
     
-    return similar_titles
-
+    return similar_entries
 
 # Pagination function
 def paginate_data(data, page, page_size):
@@ -127,20 +112,16 @@ if st.sidebar.button("Search"):
         # Perform filtering
         mask = (data['publication_date'] >= pd.Timestamp(start_date)) & (data['publication_date'] <= pd.Timestamp(end_date))
         
-        # Apply smart search using fuzzy matching and similarity
+        # Apply search using similarity for both title and author
         if title_keyword:
-            # Find similar titles using fuzzy matching and TF-IDF
-            fuzzy_matches = fuzzy_match(title_keyword, data['title'])
-            similar_titles = find_similar_titles(title_keyword, data['title'])
-            combined_matches = set(fuzzy_matches + similar_titles)
-            
-            # Filter data based on combined matches
-            mask &= data['title'].isin(combined_matches)
+            # Find similar titles using cosine similarity
+            similar_titles = find_similar_entries(title_keyword, data['title'])
+            mask &= data['title'].isin(similar_titles)
 
         if author_keyword:
-            author_keyword = author_keyword.lower()
-            matched_authors = fuzzy_match(author_keyword, data['full_name'].astype(str).tolist())
-            mask &= data['full_name'].isin(matched_authors)
+            # Find similar authors using cosine similarity
+            similar_authors = find_similar_entries(author_keyword, data['full_name'].astype(str))
+            mask &= data['full_name'].isin(similar_authors)
 
         if selected_sources:
             mask &= data['data_source'].isin(selected_sources)
