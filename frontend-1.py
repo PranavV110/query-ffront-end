@@ -51,7 +51,7 @@ def paginate_data(data, page, page_size):
 st.sidebar.title("Enter Search Parameters")
 
 # Specify the path to your CSV file
-csv_file_path = "dblpval.csv"
+csv_file_path = "val.csv"
 
 # Load data
 data = load_data(csv_file_path)
