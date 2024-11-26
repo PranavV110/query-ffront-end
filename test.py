@@ -80,12 +80,10 @@ if not os.path.exists(pkl_file_path):
 # Load the precomputed data
 data, title_vectorizer, title_vectors, author_vectorizer, author_vectors = load_precomputed_data(pkl_file_path)
 
-# Set fixed minimum and maximum dates
-min_date = datetime.date(2023, 6, 1)
+# Determine dynamic default values for the date picker
+min_date = data['publication_date'].min().date()
 max_date = data['publication_date'].max().date()
-
-# Default range selection for the date picker
-default_start_date = min_date
+default_start_date = datetime.date(2023, 6, 1) if datetime.date(2023, 6, 1) >= min_date else min_date
 default_end_date = max_date
 
 # Date range selection
