@@ -1,21 +1,33 @@
 import streamlit as st
 import pandas as pd
 import joblib
-import requests
 import os
-from sklearn.metrics.pairwise import cosine_similarity
 import datetime
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
-# Function to download the .pkl file from GitHub
-@st.cache_resource
-def download_pkl_file(url, save_path):
-    if not os.path.exists(save_path):  # Check if file already exists locally
-        with st.spinner(f"Downloading precomputed data from {url}..."):
-            response = requests.get(url)
-            response.raise_for_status()  # Raise HTTP errors if any
-            with open(save_path, "wb") as f:
-                f.write(response.content)
-    return save_path
+# Function to compute TF-IDF vectors and save them as a .pkl file
+def compute_and_save_tfidf(data, pkl_file_path):
+    with st.spinner("Precomputing TF-IDF vectors..."):
+        # Compute TF-IDF for titles
+        title_vectorizer = TfidfVectorizer(stop_words="english")
+        title_vectors = title_vectorizer.fit_transform(data["title"].fillna(""))
+
+        # Compute TF-IDF for authors
+        author_vectorizer = TfidfVectorizer(stop_words="english")
+        author_vectors = author_vectorizer.fit_transform(data["authors"].fillna(""))
+
+        # Save everything into a .pkl file
+        data_dict = {
+            "data": data,
+            "title_vectorizer": title_vectorizer,
+            "title_vectors": title_vectors,
+            "author_vectorizer": author_vectorizer,
+            "author_vectors": author_vectors,
+        }
+        with open(pkl_file_path, "wb") as f:
+            joblib.dump(data_dict, f)
+        st.success("TF-IDF vectors precomputed and saved!")
 
 # Function to load precomputed data from the .pkl file
 @st.cache_resource
@@ -37,20 +49,33 @@ def find_similar_entries(query, vectorizer, vectors):
     similar_indices = cosine_similarities.argsort()[::-1]
     return similar_indices[cosine_similarities[similar_indices] > 0.1]
 
+# Function to load CSV data
+@st.cache_data
+def load_data(file_path):
+    df = pd.read_csv(file_path)
+    df["publication_date"] = pd.to_datetime(df["publication_date"], format="mixed", errors="coerce")
+    df.fillna("N/A", inplace=True)
+    return df
+
 # Streamlit app interface
 st.sidebar.title("Enter Search Parameters")
 
-# Link to the raw .pkl file on GitHub (replace with your file's URL)
-pkl_file_url = "https://raw.githubusercontent.com/your-username/your-repo/main/tfidf_data.pkl"
-local_pkl_file_path = "tfidf_data.pkl"
+# CSV file path (replace with your file)
+csv_file_path = "combined_schema.csv"
+data = load_data(csv_file_path)
 
-# Download the .pkl file and load the precomputed data
-pkl_file_path = download_pkl_file(pkl_file_url, local_pkl_file_path)
+# Local .pkl file path
+pkl_file_path = "tfidf_data.pkl"
+
+# Check if the .pkl file exists, and create it if not
+if not os.path.exists(pkl_file_path):
+    compute_and_save_tfidf(data, pkl_file_path)
+
+# Load the precomputed data
 data, title_vectorizer, title_vectors, author_vectorizer, author_vectors = load_precomputed_data(pkl_file_path)
 
 # Get min and max dates from the dataset
 data['publication_date'] = pd.to_datetime(data['publication_date'], errors='coerce')
-data.fillna('N/A', inplace=True)
 min_date = data['publication_date'].min().date()
 max_date = data['publication_date'].max().date()
 
@@ -72,7 +97,7 @@ if 'page' not in st.session_state:
 
 # Search button
 if st.sidebar.button("Search"):
-    with st.spinner('Filtering data...'):
+    with st.spinner("Filtering data..."):
         mask = (data['publication_date'] >= pd.Timestamp(start_date)) & (data['publication_date'] <= pd.Timestamp(end_date))
         
         if title_keyword:
