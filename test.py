@@ -15,10 +15,7 @@ def compute_and_save_tfidf(data, pkl_file_path):
 
         # Compute TF-IDF for authors
         author_vectorizer = TfidfVectorizer(stop_words="english")
-        all_authors = data["authors"].fillna("").str.split(",").explode().str.strip().unique()
-        author_vectorizer.fit(all_authors)
-
-        author_vectors = author_vectorizer.transform(all_authors)
+        author_vectors = author_vectorizer.fit_transform(data["authors"].fillna(""))
 
         # Save everything into a .pkl file
         data_dict = {
@@ -27,7 +24,6 @@ def compute_and_save_tfidf(data, pkl_file_path):
             "title_vectors": title_vectors,
             "author_vectorizer": author_vectorizer,
             "author_vectors": author_vectors,
-            "all_authors": all_authors,
         }
         with open(pkl_file_path, "wb") as f:
             joblib.dump(data_dict, f)
@@ -44,7 +40,6 @@ def load_precomputed_data(pkl_file_path):
         data_dict["title_vectors"],
         data_dict["author_vectorizer"],
         data_dict["author_vectors"],
-        data_dict["all_authors"],
     )
 
 # Function to find similar entries using precomputed TF-IDF vectors
@@ -53,21 +48,6 @@ def find_similar_entries(query, vectorizer, vectors):
     cosine_similarities = cosine_similarity(query_vector, vectors).flatten()
     similar_indices = cosine_similarities.argsort()[::-1]
     return similar_indices[cosine_similarities[similar_indices] > 0.1]
-
-# Function to find the best matching author
-def find_best_author(query, vectorizer, all_authors):
-    query_vector = vectorizer.transform([query])
-    cosine_similarities = cosine_similarity(query_vector, vectorizer.transform(all_authors)).flatten()
-    best_match_idx = cosine_similarities.argmax()
-    if cosine_similarities[best_match_idx] > 0.1:
-        return all_authors[best_match_idx]
-    return "No match"
-
-# Function to create a hyperlink for the title
-def make_clickable(title, link):
-    if pd.notna(link):
-        return f'<a href="{link}" target="_blank">{title}</a>'
-    return title  # Return just the title if link is not available
 
 # Function to load CSV data
 @st.cache_data
@@ -92,10 +72,11 @@ if not os.path.exists(pkl_file_path):
     compute_and_save_tfidf(data, pkl_file_path)
 
 # Load the precomputed data
-data, title_vectorizer, title_vectors, author_vectorizer, author_vectors, all_authors = load_precomputed_data(pkl_file_path)
+data, title_vectorizer, title_vectors, author_vectorizer, author_vectors = load_precomputed_data(pkl_file_path)
 
-# Set minimum date to June 1, 2023
-min_date = datetime.date(2023, 6, 1)
+# Get min and max dates from the dataset
+data['publication_date'] = pd.to_datetime(data['publication_date'], errors='coerce')
+min_date = data['publication_date'].min().date()
 max_date = data['publication_date'].max().date()
 
 # Date range selection
@@ -124,10 +105,8 @@ if st.sidebar.button("Search"):
             mask &= data.index.isin(similar_title_indices)
 
         if author_keyword:
-            data["best_match_author"] = data["authors"].apply(
-                lambda authors: find_best_author(author_keyword, author_vectorizer, all_authors)
-            )
-            mask &= data["best_match_author"] != "No match"
+            similar_author_indices = find_similar_entries(author_keyword, author_vectorizer, author_vectors)
+            mask &= data.index.isin(similar_author_indices)
 
         filtered_data = data[mask]
         st.session_state['filtered_data'] = filtered_data
@@ -137,7 +116,6 @@ if st.sidebar.button("Search"):
 st.markdown("<h1 style='text-align: center;'>Filtered Results</h1>", unsafe_allow_html=True)
 if 'filtered_data' in st.session_state:
     filtered_data = st.session_state['filtered_data'].copy()
-    filtered_data["title"] = filtered_data.apply(lambda x: make_clickable(x["title"], x["link"]), axis=1)
     filtered_data.replace({r'\n': ' ', r'\r': ' '}, regex=True, inplace=True)
     filtered_data = filtered_data.astype(str)
 
@@ -146,8 +124,7 @@ if 'filtered_data' in st.session_state:
     page = st.session_state['page']
 
     paginated_data = filtered_data.iloc[page * page_size:(page + 1) * page_size]
-    paginated_data_html = paginated_data[["title", "best_match_author", "publication_date"]].to_html(index=False, escape=False)
-    st.markdown(paginated_data_html, unsafe_allow_html=True)
+    st.write(paginated_data)
 
     col1, col2 = st.columns([1, 1])
     with col1:
