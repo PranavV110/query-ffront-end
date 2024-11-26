@@ -49,12 +49,6 @@ def find_similar_entries(query, vectorizer, vectors):
     similar_indices = cosine_similarities.argsort()[::-1]
     return similar_indices[cosine_similarities[similar_indices] > 0.1]
 
-# Function to create a hyperlink for the title
-def make_clickable(title, link):
-    if pd.notna(link):
-        return f'<a href="{link}" target="_blank">{title}</a>'
-    return title  # Return just the title if link is not available
-
 # Function to load CSV data
 @st.cache_data
 def load_data(file_path):
@@ -80,8 +74,9 @@ if not os.path.exists(pkl_file_path):
 # Load the precomputed data
 data, title_vectorizer, title_vectors, author_vectorizer, author_vectors = load_precomputed_data(pkl_file_path)
 
-# Set minimum date to June 1, 2023
-min_date = datetime.date(2023, 6, 1)
+# Get min and max dates from the dataset
+data['publication_date'] = pd.to_datetime(data['publication_date'], errors='coerce')
+min_date = data['publication_date'].min().date()
 max_date = data['publication_date'].max().date()
 
 # Date range selection
@@ -121,7 +116,6 @@ if st.sidebar.button("Search"):
 st.markdown("<h1 style='text-align: center;'>Filtered Results</h1>", unsafe_allow_html=True)
 if 'filtered_data' in st.session_state:
     filtered_data = st.session_state['filtered_data'].copy()
-    filtered_data["title"] = filtered_data.apply(lambda x: make_clickable(x["title"], x["link"]), axis=1)
     filtered_data.replace({r'\n': ' ', r'\r': ' '}, regex=True, inplace=True)
     filtered_data = filtered_data.astype(str)
 
@@ -130,8 +124,7 @@ if 'filtered_data' in st.session_state:
     page = st.session_state['page']
 
     paginated_data = filtered_data.iloc[page * page_size:(page + 1) * page_size]
-    paginated_data_html = paginated_data[["title", "authors", "publication_date"]].to_html(index=False, escape=False)
-    st.markdown(paginated_data_html, unsafe_allow_html=True)
+    st.write(paginated_data)
 
     col1, col2 = st.columns([1, 1])
     with col1:
